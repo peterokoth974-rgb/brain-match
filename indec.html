@@ -1,0 +1,340 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brain Match - Puzzle Game</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 24px 14px;
+      font-family: Arial, sans-serif;
+      color: #f8fafc;
+      background: linear-gradient(135deg, #10172a, #24245a);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .game {
+      width: 100%;
+      max-width: 480px;
+      padding: 25px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 20px 60px #0004;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 0 0 8px;
+      font-size: 32px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #cbd5e1;
+      margin-bottom: 24px;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .stat {
+      flex: 1;
+      text-align: center;
+      background: #ffffff12;
+      border-radius: 12px;
+      padding: 12px 5px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 23px;
+      margin-top: 5px;
+      color: #67e8f9;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .tile {
+      border: 0;
+      border-radius: 14px;
+      aspect-ratio: 1;
+      font-size: clamp(23px, 7vw, 36px);
+      cursor: pointer;
+      background: #6366f1;
+      color: white;
+      box-shadow: 0 4px 0 #3730a3;
+      transition: transform 0.15s, background 0.15s;
+    }
+
+    .tile:hover {
+      transform: translateY(-2px);
+    }
+
+    .tile.revealed {
+      background: #f8fafc;
+      box-shadow: 0 4px 0 #cbd5e1;
+    }
+
+    .tile.matched {
+      background: #a7f3d0;
+      box-shadow: 0 4px 0 #34d399;
+      cursor: default;
+    }
+
+    .tile:focus-visible,
+    .restart:focus-visible {
+      outline: 3px solid #facc15;
+      outline-offset: 3px;
+    }
+
+    .message {
+      min-height: 48px;
+      margin: 20px 0 10px;
+      text-align: center;
+      line-height: 1.5;
+      color: #e2e8f0;
+    }
+
+    .restart {
+      width: 100%;
+      padding: 14px;
+      border: 0;
+      border-radius: 12px;
+      background: #22d3ee;
+      color: #082f49;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .restart:hover {
+      background: #67e8f9;
+    }
+
+    .help {
+      text-align: center;
+      color: #cbd5e1;
+      font-size: 13px;
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="game">
+    <h1>🧠 Brain Match</h1>
+    <p class="subtitle">Find all 8 matching pairs!</p>
+
+    <section class="stats" aria-label="Game statistics">
+      <div class="stat">
+        Moves
+        <strong id="moves">0</strong>
+      </div>
+      <div class="stat">
+        Pairs
+        <strong id="pairs">0/8</strong>
+      </div>
+      <div class="stat">
+        Time
+        <strong id="time">0s</strong>
+      </div>
+    </section>
+
+    <section
+      class="board"
+      id="board"
+      aria-label="Memory puzzle board"
+    ></section>
+
+    <p class="message" id="message" aria-live="polite">
+      Tap or click two tiles to find a matching pair.
+    </p>
+
+    <button class="restart" id="restart">
+      🔄 New Game
+    </button>
+
+    <p class="help">
+      Match all pairs using as few moves as possible!
+    </p>
+  </main>
+
+  <script>
+    const symbols = [
+      "🍎", "🚀", "🐱", "⚽",
+      "🌟", "🎵", "🍕", "🦋"
+    ];
+
+    const board = document.getElementById("board");
+    const movesDisplay = document.getElementById("moves");
+    const pairsDisplay = document.getElementById("pairs");
+    const timeDisplay = document.getElementById("time");
+    const message = document.getElementById("message");
+    const restartButton = document.getElementById("restart");
+
+    let firstTile = null;
+    let secondTile = null;
+    let locked = false;
+    let moves = 0;
+    let matchedPairs = 0;
+    let seconds = 0;
+    let timer = null;
+    let started = false;
+
+    function shuffle(items) {
+      for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [items[i], items[j]] = [items[j], items[i]];
+      }
+      return items;
+    }
+
+    function startTimer() {
+      if (started) return;
+
+      started = true;
+      timer = setInterval(() => {
+        seconds++;
+        timeDisplay.textContent = seconds + "s";
+      }, 1000);
+    }
+
+    function createTile(symbol, index) {
+      const tile = document.createElement("button");
+
+      tile.className = "tile";
+      tile.textContent = "?";
+      tile.dataset.symbol = symbol;
+      tile.dataset.index = index;
+      tile.setAttribute("aria-label", "Hidden tile");
+      tile.setAttribute("aria-pressed", "false");
+
+      tile.addEventListener("click", () => {
+        handleTileClick(tile);
+      });
+
+      return tile;
+    }
+
+    function handleTileClick(tile) {
+      if (locked) return;
+      if (tile.classList.contains("matched")) return;
+      if (tile === firstTile) return;
+
+      if (!started) startTimer();
+
+      revealTile(tile);
+
+      if (firstTile === null) {
+        firstTile = tile;
+        message.textContent = "Now find its matching symbol!";
+        return;
+      }
+
+      secondTile = tile;
+      moves++;
+      movesDisplay.textContent = moves;
+
+      if (
+        firstTile.dataset.symbol ===
+        secondTile.dataset.symbol
+      ) {
+        firstTile.classList.add("matched");
+        secondTile.classList.add("matched");
+
+        firstTile.setAttribute("aria-label", "Matched");
+        secondTile.setAttribute("aria-label", "Matched");
+
+        matchedPairs++;
+        pairsDisplay.textContent = matchedPairs + "/8";
+
+        firstTile = null;
+        secondTile = null;
+
+        if (matchedPairs === symbols.length) {
+          clearInterval(timer);
+          message.textContent =
+            "🎉 You won in " + moves +
+            " moves and " + seconds + " seconds!";
+        } else {
+          message.textContent = "✅ Match found! Keep going.";
+        }
+      } else {
+        locked = true;
+        message.textContent = "Not a match. Try again!";
+
+        setTimeout(() => {
+          hideTile(firstTile);
+          hideTile(secondTile);
+
+          firstTile = null;
+          secondTile = null;
+          locked = false;
+        }, 800);
+      }
+    }
+
+    function revealTile(tile) {
+      tile.textContent = tile.dataset.symbol;
+      tile.classList.add("revealed");
+      tile.setAttribute("aria-label", tile.dataset.symbol);
+      tile.setAttribute("aria-pressed", "true");
+    }
+
+    function hideTile(tile) {
+      tile.textContent = "?";
+      tile.classList.remove("revealed");
+      tile.setAttribute("aria-label", "Hidden tile");
+      tile.setAttribute("aria-pressed", "false");
+    }
+
+    function newGame() {
+      clearInterval(timer);
+
+      firstTile = null;
+      secondTile = null;
+      locked = false;
+      moves = 0;
+      matchedPairs = 0;
+      seconds = 0;
+      started = false;
+
+      movesDisplay.textContent = "0";
+      pairsDisplay.textContent = "0/8";
+      timeDisplay.textContent = "0s";
+      message.textContent =
+        "Tap or click two tiles to find a matching pair.";
+
+      const deck = shuffle([...symbols, ...symbols]);
+      board.innerHTML = "";
+
+      deck.forEach((symbol, index) => {
+        board.appendChild(createTile(symbol, index));
+      });
+    }
+
+    restartButton.addEventListener("click", newGame);
+
+    newGame();
+  </script>
+</body>
+</html>
