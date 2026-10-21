@@ -4,9 +4,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Brain Match - Puzzle Game</title>
+  <meta name="theme-color" content="#100d24">
+  <meta name="description" content="Play Brain Match, a fun memory puzzle game. Match the cards and beat your best score!">
+  <title>Brain Match | Memory Challenge</title>
 
   <style>
+    :root {
+      --bg: #100d24;
+      --panel: #1d1838;
+      --purple: #a78bfa;
+      --cyan: #67e8f9;
+      --white: #f8fafc;
+      --muted: #aaa6c8;
+      --green: #6ee7b7;
+      --pink: #f0abfc;
+    }
+
     * {
       box-sizing: border-box;
     }
@@ -14,191 +27,437 @@
     body {
       margin: 0;
       min-height: 100vh;
-      padding: 24px 14px;
-      font-family: Arial, sans-serif;
-      color: #f8fafc;
-      background: linear-gradient(135deg, #10172a, #24245a);
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      padding: 28px 16px;
+      font-family: system-ui, Arial, sans-serif;
+      color: var(--white);
+      background:
+        radial-gradient(ellipse at 10% 0%, #49308055, transparent 40%),
+        radial-gradient(ellipse at 90% 100%, #164e6350, transparent 45%),
+        var(--bg);
     }
 
-    .game {
+    button {
+      font: inherit;
+    }
+
+    .app {
       width: 100%;
-      max-width: 480px;
-      padding: 25px;
-      border-radius: 24px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 20px 60px #0004;
+      max-width: 650px;
+      margin: auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .logo {
+      display: inline-grid;
+      place-items: center;
+      width: 64px;
+      height: 64px;
+      font-size: 34px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #8b5cf6, #22d3ee);
+      box-shadow: 0 8px 35px #8b5cf655;
+      margin-bottom: 12px;
     }
 
     h1 {
-      text-align: center;
-      margin: 0 0 8px;
-      font-size: 32px;
+      margin: 0;
+      font-size: clamp(32px, 6vw, 46px);
+      letter-spacing: -1.5px;
+    }
+
+    h1 span {
+      color: var(--purple);
     }
 
     .subtitle {
-      text-align: center;
-      color: #cbd5e1;
-      margin-bottom: 24px;
+      color: var(--muted);
+      margin: 8px 0 0;
+    }
+
+    .panel {
+      background: #1d1838cc;
+      border: 1px solid #ffffff18;
+      border-radius: 24px;
+      padding: clamp(16px, 4vw, 26px);
+      box-shadow: 0 24px 70px #0003;
+      backdrop-filter: blur(12px);
+    }
+
+    .section-label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .difficulty {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    .mode {
+      padding: 11px 5px;
+      color: var(--muted);
+      border: 1px solid #ffffff20;
+      border-radius: 12px;
+      background: #ffffff08;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .mode.active {
+      color: white;
+      border-color: var(--purple);
+      background: #8b5cf633;
+      box-shadow: inset 0 0 0 1px #8b5cf644;
+    }
+
+    .mode:hover:not(.active) {
+      background: #ffffff12;
     }
 
     .stats {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
     }
 
     .stat {
-      flex: 1;
+      padding: 14px 5px;
       text-align: center;
-      background: #ffffff12;
-      border-radius: 12px;
-      padding: 12px 5px;
+      border: 1px solid #ffffff12;
+      border-radius: 16px;
+      background: #ffffff08;
+    }
+
+    .stat .label {
+      color: var(--muted);
+      font-size: 12px;
     }
 
     .stat strong {
       display: block;
-      font-size: 23px;
       margin-top: 5px;
-      color: #67e8f9;
+      font-size: clamp(20px, 4vw, 27px);
+      color: var(--cyan);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .progress-track {
+      height: 6px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #ffffff15;
+      margin-bottom: 22px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--purple), var(--cyan));
+      transition: width 0.3s ease;
     }
 
     .board {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
+      gap: clamp(7px, 2vw, 12px);
+      perspective: 900px;
     }
 
     .tile {
-      border: 0;
-      border-radius: 14px;
+      min-width: 0;
       aspect-ratio: 1;
-      font-size: clamp(23px, 7vw, 36px);
+      padding: 0;
+      border: 0;
+      border-radius: 16px;
+      background: transparent;
       cursor: pointer;
-      background: #6366f1;
-      color: white;
-      box-shadow: 0 4px 0 #3730a3;
-      transition: transform 0.15s, background 0.15s;
+      perspective: 700px;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .tile:hover {
-      transform: translateY(-2px);
+    .tile-inner {
+      display: block;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.42s cubic-bezier(.2,.7,.2,1);
     }
 
-    .tile.revealed {
-      background: #f8fafc;
-      box-shadow: 0 4px 0 #cbd5e1;
+    .tile.revealed .tile-inner,
+    .tile.matched .tile-inner {
+      transform: rotateY(180deg);
     }
 
-    .tile.matched {
-      background: #a7f3d0;
-      box-shadow: 0 4px 0 #34d399;
+    .tile-face {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .tile-front {
+      color: #d9d2ff;
+      font-size: clamp(22px, 5vw, 32px);
+      border: 1px solid #a78bfa55;
+      background: linear-gradient(145deg, #393063, #282148);
+      box-shadow: 0 5px 0 #17132d;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .tile:hover:not(.matched) .tile-front {
+      background: linear-gradient(145deg, #514187, #34265d);
+      border-color: var(--purple);
+    }
+
+    .tile-back {
+      transform: rotateY(180deg);
+      font-size: clamp(25px, 7vw, 43px);
+      background: linear-gradient(145deg, #f5f3ff, #ddd6fe);
+      box-shadow: 0 5px 0 #a78bfa;
+      border: 1px solid #ffffffaa;
+    }
+
+    .tile.matched .tile-back {
+      background: linear-gradient(145deg, #d1fae5, #6ee7b7);
+      box-shadow: 0 5px 0 #34d399;
+      animation: matchPop 0.3s ease;
+    }
+
+    .tile:disabled {
       cursor: default;
     }
 
     .tile:focus-visible,
-    .restart:focus-visible {
-      outline: 3px solid #facc15;
+    button:focus-visible {
+      outline: 3px solid var(--cyan);
       outline-offset: 3px;
     }
 
+    @keyframes matchPop {
+      50% { transform: rotateY(180deg) scale(1.08); }
+    }
+
     .message {
-      min-height: 48px;
-      margin: 20px 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 56px;
+      margin: 14px 0;
       text-align: center;
-      line-height: 1.5;
-      color: #e2e8f0;
+      color: #e3ddff;
+      font-size: 14px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+
+    .restart, .sound {
+      min-height: 48px;
+      border: 0;
+      border-radius: 14px;
+      cursor: pointer;
+      font-weight: 750;
+      transition: transform 0.15s, filter 0.15s;
     }
 
     .restart {
-      width: 100%;
-      padding: 14px;
-      border: 0;
-      border-radius: 12px;
-      background: #22d3ee;
-      color: #082f49;
-      font-weight: bold;
-      font-size: 16px;
-      cursor: pointer;
+      color: #17132d;
+      background: linear-gradient(100deg, var(--purple), var(--cyan));
     }
 
-    .restart:hover {
-      background: #67e8f9;
+    .sound {
+      min-width: 54px;
+      padding: 0 14px;
+      color: white;
+      border: 1px solid #ffffff20;
+      background: #ffffff0d;
     }
 
-    .help {
+    .restart:hover, .sound:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+    }
+
+    .best {
       text-align: center;
-      color: #cbd5e1;
+      color: var(--muted);
       font-size: 13px;
-      margin-bottom: 0;
+      margin: 20px 0 0;
+    }
+
+    .best strong {
+      color: var(--pink);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #8580a7;
+    }
+
+    @media (max-width: 380px) {
+      body {
+        padding: 18px 10px;
+      }
+
+      .panel {
+        padding: 13px;
+        border-radius: 19px;
+      }
+
+      .tile, .tile-face {
+        border-radius: 11px;
+      }
+
+      .board {
+        gap: 7px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 </head>
 
 <body>
-  <main class="game">
-    <h1>🧠 Brain Match</h1>
-    <p class="subtitle">Find all 8 matching pairs!</p>
+  <main class="app">
+    <header>
+      <div class="logo" aria-hidden="true">🧠</div>
+      <h1>Brain <span>Match</span></h1>
+      <p class="subtitle">Train your brain. Beat your best.</p>
+    </header>
 
-    <section class="stats" aria-label="Game statistics">
-      <div class="stat">
-        Moves
-        <strong id="moves">0</strong>
+    <section class="panel">
+      <span class="section-label">Choose your challenge</span>
+
+      <div class="difficulty" aria-label="Difficulty">
+        <button class="mode active" data-mode="easy">🌱 Easy</button>
+        <button class="mode" data-mode="medium">⚡ Medium</button>
+        <button class="mode" data-mode="hard">🔥 Hard</button>
       </div>
-      <div class="stat">
-        Pairs
-        <strong id="pairs">0/8</strong>
+
+      <section class="stats" aria-label="Game statistics">
+        <div class="stat">
+          <span class="label">MOVES</span>
+          <strong id="moves">0</strong>
+        </div>
+        <div class="stat">
+          <span class="label">TIME</span>
+          <strong id="time">0:00</strong>
+        </div>
+        <div class="stat">
+          <span class="label">PAIRS</span>
+          <strong id="pairs">0/8</strong>
+        </div>
+      </section>
+
+      <div class="progress-info">
+        <span>YOUR PROGRESS</span>
+        <span id="progressText">0% complete</span>
       </div>
-      <div class="stat">
-        Time
-        <strong id="time">0s</strong>
+      <div
+        class="progress-track"
+        role="progressbar"
+        aria-label="Matched pairs"
+        aria-valuemin="0"
+        aria-valuemax="8"
+        aria-valuenow="0"
+        id="progressTrack"
+      >
+        <div class="progress-bar" id="progressBar"></div>
       </div>
+
+      <section class="board" id="board" aria-label="Puzzle cards"></section>
+
+      <p class="message" id="message" aria-live="polite">
+        ✨ Find two matching symbols to begin!
+      </p>
+
+      <div class="actions">
+        <button class="restart" id="restart">↻ New Game</button>
+        <button class="sound" id="sound" aria-label="Turn sound on" title="Toggle sound">🔇</button>
+      </div>
+
+      <p class="best">
+        🏆 Best result: <strong id="best">Not yet — you can do it!</strong>
+      </p>
     </section>
 
-    <section
-      class="board"
-      id="board"
-      aria-label="Memory puzzle board"
-    ></section>
-
-    <p class="message" id="message" aria-live="polite">
-      Tap or click two tiles to find a matching pair.
-    </p>
-
-    <button class="restart" id="restart">
-      🔄 New Game
-    </button>
-
-    <p class="help">
-      Match all pairs using as few moves as possible!
-    </p>
+    <footer>
+      BRAIN MATCH · A LITTLE FUN FOR YOUR BRAIN
+    </footer>
   </main>
 
   <script>
-    const symbols = [
-      "🍎", "🚀", "🐱", "⚽",
-      "🌟", "🎵", "🍕", "🦋"
+    const allSymbols = [
+      "🍎", "🚀", "🐱", "⚽", "🌟", "🎵",
+      "🍕", "🦋", "🌈", "🐼", "🍉", "🎸"
     ];
 
-    const board = document.getElementById("board");
-    const movesDisplay = document.getElementById("moves");
-    const pairsDisplay = document.getElementById("pairs");
-    const timeDisplay = document.getElementById("time");
-    const message = document.getElementById("message");
-    const restartButton = document.getElementById("restart");
+    const modes = {
+      easy: { pairs: 8, columns: 4 },
+      medium: { pairs: 10, columns: 4 },
+      hard: { pairs: 12, columns: 4 }
+    };
 
-    let firstTile = null;
-    let secondTile = null;
+    const board = document.getElementById("board");
+    const movesEl = document.getElementById("moves");
+    const timeEl = document.getElementById("time");
+    const pairsEl = document.getElementById("pairs");
+    const messageEl = document.getElementById("message");
+    const progressBar = document.getElementById("progressBar");
+    const progressText = document.getElementById("progressText");
+    const progressTrack = document.getElementById("progressTrack");
+    const bestEl = document.getElementById("best");
+    const soundButton = document.getElementById("sound");
+
+    let first = null;
+    let second = null;
     let locked = false;
     let moves = 0;
-    let matchedPairs = 0;
+    let matched = 0;
     let seconds = 0;
     let timer = null;
     let started = false;
+    let soundOn = false;
+    let audioContext = null;
+    let currentMode = "easy";
+    let gameId = 0;
 
     function shuffle(items) {
       for (let i = items.length - 1; i > 0; i--) {
@@ -208,131 +467,271 @@
       return items;
     }
 
+    function playSound(frequency = 500, duration = 0.12) {
+      if (!soundOn) return;
+
+      try {
+        audioContext ??= new (
+          window.AudioContext || window.webkitAudioContext
+        )();
+
+        if (audioContext.state === "suspended") {
+          audioContext.resume();
+        }
+
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        oscillator.type = "sine";
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.08, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(
+          0.001,
+          audioContext.currentTime + duration
+        );
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + duration);
+      } catch (error) {
+        console.warn("Sound is unavailable in this browser.", error);
+      }
+    }
+
+    function formatTime(totalSeconds) {
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      return mins + ":" + String(secs).padStart(2, "0");
+    }
+
     function startTimer() {
       if (started) return;
 
       started = true;
       timer = setInterval(() => {
         seconds++;
-        timeDisplay.textContent = seconds + "s";
+        timeEl.textContent = formatTime(seconds);
       }, 1000);
     }
 
-    function createTile(symbol, index) {
-      const tile = document.createElement("button");
+    function getBestKey() {
+      return "brainMatchBest_" + currentMode;
+    }
 
+    function updateBest() {
+      try {
+        const best = JSON.parse(localStorage.getItem(getBestKey()));
+
+        if (best && Number.isFinite(best.moves)) {
+          bestEl.textContent =
+            best.moves + " moves · " + formatTime(best.seconds);
+        } else {
+          bestEl.textContent = "Not yet — you can do it!";
+        }
+      } catch {
+        bestEl.textContent = "Play to set a record!";
+      }
+    }
+
+    function updateProgress() {
+      const totalPairs = modes[currentMode].pairs;
+      const percentage = Math.round((matched / totalPairs) * 100);
+
+      pairsEl.textContent = matched + "/" + totalPairs;
+      progressText.textContent = percentage + "% complete";
+      progressBar.style.width = percentage + "%";
+      progressTrack.setAttribute("aria-valuemax", totalPairs);
+      progressTrack.setAttribute("aria-valuenow", matched);
+    }
+
+    function makeTile(symbol, index) {
+      const tile = document.createElement("button");
+      tile.type = "button";
       tile.className = "tile";
-      tile.textContent = "?";
       tile.dataset.symbol = symbol;
       tile.dataset.index = index;
-      tile.setAttribute("aria-label", "Hidden tile");
+      tile.setAttribute("aria-label", "Hidden card");
       tile.setAttribute("aria-pressed", "false");
 
-      tile.addEventListener("click", () => {
-        handleTileClick(tile);
-      });
+      const inner = document.createElement("span");
+      inner.className = "tile-inner";
+
+      const front = document.createElement("span");
+      front.className = "tile-face tile-front";
+      front.textContent = "?";
+      front.setAttribute("aria-hidden", "true");
+
+      const back = document.createElement("span");
+      back.className = "tile-face tile-back";
+      back.textContent = symbol;
+      back.setAttribute("aria-hidden", "true");
+
+      inner.append(front, back);
+      tile.appendChild(inner);
+
+      tile.addEventListener("click", () => handleTile(tile));
 
       return tile;
     }
 
-    function handleTileClick(tile) {
-      if (locked) return;
-      if (tile.classList.contains("matched")) return;
-      if (tile === firstTile) return;
-
-      if (!started) startTimer();
-
-      revealTile(tile);
-
-      if (firstTile === null) {
-        firstTile = tile;
-        message.textContent = "Now find its matching symbol!";
-        return;
-      }
-
-      secondTile = tile;
-      moves++;
-      movesDisplay.textContent = moves;
-
-      if (
-        firstTile.dataset.symbol ===
-        secondTile.dataset.symbol
-      ) {
-        firstTile.classList.add("matched");
-        secondTile.classList.add("matched");
-
-        firstTile.setAttribute("aria-label", "Matched");
-        secondTile.setAttribute("aria-label", "Matched");
-
-        matchedPairs++;
-        pairsDisplay.textContent = matchedPairs + "/8";
-
-        firstTile = null;
-        secondTile = null;
-
-        if (matchedPairs === symbols.length) {
-          clearInterval(timer);
-          message.textContent =
-            "🎉 You won in " + moves +
-            " moves and " + seconds + " seconds!";
-        } else {
-          message.textContent = "✅ Match found! Keep going.";
-        }
-      } else {
-        locked = true;
-        message.textContent = "Not a match. Try again!";
-
-        setTimeout(() => {
-          hideTile(firstTile);
-          hideTile(secondTile);
-
-          firstTile = null;
-          secondTile = null;
-          locked = false;
-        }, 800);
-      }
-    }
-
-    function revealTile(tile) {
-      tile.textContent = tile.dataset.symbol;
+    function reveal(tile) {
       tile.classList.add("revealed");
       tile.setAttribute("aria-label", tile.dataset.symbol);
       tile.setAttribute("aria-pressed", "true");
     }
 
-    function hideTile(tile) {
-      tile.textContent = "?";
+    function conceal(tile) {
       tile.classList.remove("revealed");
-      tile.setAttribute("aria-label", "Hidden tile");
+      tile.setAttribute("aria-label", "Hidden card");
       tile.setAttribute("aria-pressed", "false");
     }
 
+    function handleTile(tile) {
+      if (locked || tile === first ||
+          tile.classList.contains("matched")) {
+        return;
+      }
+
+      if (!started) startTimer();
+
+      reveal(tile);
+      playSound(430, 0.08);
+
+      if (!first) {
+        first = tile;
+        messageEl.textContent = "👀 Remember it! Find the matching card.";
+        return;
+      }
+
+      second = tile;
+      moves++;
+      movesEl.textContent = moves;
+
+      if (first.dataset.symbol === second.dataset.symbol) {
+        first.classList.add("matched");
+        second.classList.add("matched");
+        first.disabled = true;
+        second.disabled = true;
+
+        first.setAttribute("aria-label", "Matched " + first.dataset.symbol);
+        second.setAttribute("aria-label", "Matched " + second.dataset.symbol);
+
+        matched++;
+        updateProgress();
+        playSound(720, 0.16);
+
+        first = null;
+        second = null;
+
+        if (matched === modes[currentMode].pairs) {
+          finishGame();
+        } else {
+          messageEl.textContent = "✨ Perfect match! Keep it going.";
+        }
+      } else {
+        locked = true;
+        messageEl.textContent = "💜 Not quite! Try to remember the cards.";
+
+        const thisGame = gameId;
+
+        setTimeout(() => {
+          if (thisGame !== gameId) return;
+
+          conceal(first);
+          conceal(second);
+          first = null;
+          second = null;
+          locked = false;
+        }, 850);
+      }
+    }
+
+    function finishGame() {
+      clearInterval(timer);
+      locked = true;
+
+      const result = { moves, seconds };
+
+      try {
+        const oldBest = JSON.parse(localStorage.getItem(getBestKey()));
+
+        if (!oldBest ||
+            moves < oldBest.moves ||
+            (moves === oldBest.moves && seconds < oldBest.seconds)) {
+          localStorage.setItem(getBestKey(), JSON.stringify(result));
+        }
+      } catch {
+        // The game still works if browser storage is unavailable.
+      }
+
+      updateBest();
+      playSound(880, 0.3);
+
+      messageEl.textContent =
+        "🏆 Amazing! " + moves + " moves in " +
+        formatTime(seconds) + ". You did it!";
+    }
+
     function newGame() {
+      gameId++;
       clearInterval(timer);
 
-      firstTile = null;
-      secondTile = null;
+      first = null;
+      second = null;
       locked = false;
       moves = 0;
-      matchedPairs = 0;
+      matched = 0;
       seconds = 0;
       started = false;
 
-      movesDisplay.textContent = "0";
-      pairsDisplay.textContent = "0/8";
-      timeDisplay.textContent = "0s";
-      message.textContent =
-        "Tap or click two tiles to find a matching pair.";
+      movesEl.textContent = "0";
+      timeEl.textContent = "0:00";
+      messageEl.textContent = "✨ Find two matching symbols to begin!";
 
-      const deck = shuffle([...symbols, ...symbols]);
+      const totalPairs = modes[currentMode].pairs;
+      const deck = shuffle([
+        ...allSymbols.slice(0, totalPairs),
+        ...allSymbols.slice(0, totalPairs)
+      ]);
+
       board.innerHTML = "";
+      board.style.gridTemplateColumns =
+        "repeat(" + modes[currentMode].columns + ", minmax(0, 1fr))";
 
       deck.forEach((symbol, index) => {
-        board.appendChild(createTile(symbol, index));
+        board.appendChild(makeTile(symbol, index));
       });
+
+      document.querySelectorAll(".mode").forEach(button => {
+        const active = button.dataset.mode === currentMode;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+
+      updateProgress();
+      updateBest();
     }
 
-    restartButton.addEventListener("click", newGame);
+    document.querySelectorAll(".mode").forEach(button => {
+      button.addEventListener("click", () => {
+        currentMode = button.dataset.mode;
+        newGame();
+      });
+    });
+
+    document.getElementById("restart").addEventListener("click", newGame);
+
+    soundButton.addEventListener("click", () => {
+      soundOn = !soundOn;
+      soundButton.textContent = soundOn ? "🔊" : "🔇";
+      soundButton.setAttribute(
+        "aria-label",
+        soundOn ? "Turn sound off" : "Turn sound on"
+      );
+
+      if (soundOn) playSound(600, 0.12);
+    });
 
     newGame();
   </script>
