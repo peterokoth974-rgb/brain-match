@@ -125,6 +125,36 @@
       background: #ffffff12;
     }
 
+    .category-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .category-name {
+      color: var(--cyan);
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    .next-category {
+      border: 1px solid #67e8f955;
+      border-radius: 12px;
+      padding: 10px 14px;
+      color: white;
+      background: #67e8f91a;
+      cursor: pointer;
+      font-weight: 750;
+    }
+
+    .next-category:hover {
+      background: #67e8f933;
+      transform: translateY(-1px);
+    }
+
     .stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -237,7 +267,9 @@
 
     .tile-back {
       transform: rotateY(180deg);
-      font-size: clamp(25px, 7vw, 43px);
+      font-size: clamp(18px, 5vw, 34px);
+      overflow-wrap: anywhere;
+      padding: 4px;
       background: linear-gradient(145deg, #f5f3ff, #ddd6fe);
       box-shadow: 0 5px 0 #a78bfa;
       border: 1px solid #ffffffaa;
@@ -371,6 +403,14 @@
         <button class="mode" data-mode="hard">🔥 Hard</button>
       </div>
 
+      <div class="category-row">
+        <div>
+          <span class="section-label">Current category</span>
+          <div class="category-name" id="categoryName">🚗 Cars</div>
+        </div>
+        <button class="next-category" id="nextCategory">Next Category →</button>
+      </div>
+
       <section class="stats" aria-label="Game statistics">
         <div class="stat">
           <span class="label">MOVES</span>
@@ -405,7 +445,7 @@
       <section class="board" id="board" aria-label="Puzzle cards"></section>
 
       <p class="message" id="message" aria-live="polite">
-        ✨ Find two matching symbols to begin!
+        ✨ Find two matching items to begin!
       </p>
 
       <div class="actions">
@@ -424,9 +464,61 @@
   </main>
 
   <script>
-    const allSymbols = [
-      "🍎", "🚀", "🐱", "⚽", "🌟", "🎵",
-      "🍕", "🦋", "🌈", "🐼", "🍉", "🎸"
+    // Each category has at least 12 items, so every difficulty can be played.
+    // These use emoji/text illustrations and work without downloading image files.
+    const categories = [
+      {
+        name: "🚗 Cars",
+        items: ["🚗", "🚙", "🏎️", "🚕", "🚓", "🚑", "🚒", "🛻", "🚐", "🚘", "🚖", "🚔"]
+      },
+      {
+        name: "🏠 Houses & Buildings",
+        items: ["🏠", "🏡", "🏘️", "🏚️", "🏢", "🏬", "🏭", "🏰", "🏯", "🏛️", "🏗️", "🛖"]
+      },
+      {
+        name: "🗺️ Countries & Maps",
+        items: ["🇰🇪", "🇺🇬", "🇹🇿", "🇳🇬", "🇿🇦", "🇬🇭", "🇪🇬", "🇯🇵", "🇧🇷", "🇺🇸", "🇬🇧", "🇨🇦"]
+      },
+      {
+        name: "🌟 Celebrities & Famous People",
+        items: ["Ronaldo", "Messi", "Beyoncé", "Drake", "Adele", "Zendaya", "Dwayne", "Shakira", "Serena", "Rihanna", "Burnaboy", "Lupita"]
+      },
+      {
+        name: "🐾 Animals",
+        items: ["🦁", "🐘", "🦒", "🐆", "🦓", "🐒", "🐼", "🦊", "🐬", "🦅", "🐢", "🦋"]
+      },
+      {
+        name: "⚽ Sports",
+        items: ["⚽", "🏀", "🏈", "⚾", "🎾", "🏐", "🏉", "🥊", "🏓", "🏸", "🥅", "🏆"]
+      },
+      {
+        name: "💻 Technology",
+        items: ["💻", "📱", "📷", "🎧", "⌚", "🖨️", "🖥️", "⌨️", "🕹️", "📺", "🔋", "🛰️"]
+      },
+      {
+        name: "✈️ Transport",
+        items: ["✈️", "🚁", "🚂", "🚌", "🚎", "🚲", "🛵", "🚤", "⛴️", "🚀", "🚜", "🚆"]
+      },
+      {
+        name: "🏛️ World Landmarks",
+        items: ["🗼", "🗽", "🏰", "🕌", "⛩️", "🛕", "🏟️", "🌉", "🗿", "🏟️", "🏯", "⛪"]
+      },
+      {
+        name: "👟 Fashion",
+        items: ["👟", "👠", "👒", "🧢", "👕", "👗", "🧥", "👔", "👜", "🎒", "⌚", "💍"]
+      },
+      {
+        name: "🍔 Food",
+        items: ["🍔", "🍕", "🌮", "🍣", "🍩", "🍿", "🥑", "🍉", "🍰", "🍜", "🥨", "🍓"]
+      },
+      {
+        name: "🎮 Games & Fun",
+        items: ["🎮", "🧩", "🎯", "🎲", "🪀", "🪁", "🎸", "🎹", "🎺", "🎻", "🎨", "🎪"]
+      },
+      {
+        name: "🌍 Mixed Challenge",
+        items: ["🚗", "🏠", "🇰🇪", "🦁", "⚽", "💻", "✈️", "🗼", "👟", "🎮", "📱", "🏆"]
+      }
     ];
 
     const modes = {
@@ -457,7 +549,10 @@
     let soundOn = false;
     let audioContext = null;
     let currentMode = "easy";
+    let currentCategoryIndex = 0;
     let gameId = 0;
+    const categoryNameEl = document.getElementById("categoryName");
+    const nextCategoryButton = document.getElementById("nextCategory");
 
     function shuffle(items) {
       for (let i = items.length - 1; i > 0; i--) {
@@ -600,7 +695,7 @@
 
       if (!first) {
         first = tile;
-        messageEl.textContent = "👀 Remember it! Find the matching card.";
+        messageEl.textContent = "👀 Remember it! Find the matching item.";
         return;
       }
 
@@ -687,13 +782,13 @@
 
       movesEl.textContent = "0";
       timeEl.textContent = "0:00";
-      messageEl.textContent = "✨ Find two matching symbols to begin!";
+      messageEl.textContent = "✨ Match two identical items to begin!";
 
       const totalPairs = modes[currentMode].pairs;
-      const deck = shuffle([
-        ...allSymbols.slice(0, totalPairs),
-        ...allSymbols.slice(0, totalPairs)
-      ]);
+      const currentItems = categories[currentCategoryIndex].items;
+      categoryNameEl.textContent = categories[currentCategoryIndex].name;
+      const selectedItems = shuffle([...currentItems]).slice(0, totalPairs);
+      const deck = shuffle([...selectedItems, ...selectedItems]);
 
       board.innerHTML = "";
       board.style.gridTemplateColumns =
@@ -721,6 +816,12 @@
     });
 
     document.getElementById("restart").addEventListener("click", newGame);
+
+    nextCategoryButton.addEventListener("click", () => {
+      currentCategoryIndex = (currentCategoryIndex + 1) % categories.length;
+      newGame();
+      messageEl.textContent = "🆕 New category! Match the identical items.";
+    });
 
     soundButton.addEventListener("click", () => {
       soundOn = !soundOn;
